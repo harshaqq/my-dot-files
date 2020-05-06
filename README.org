@@ -1,0 +1,33 @@
+* OS
+** [[https://debian.org][Debian]]
+* Programs
+** [[https://www.gnu.org/software/emacs/][Emacs]]
+** [[https://github.com/ch11ng/exwm][EXWM]]
+* Installing the packages
+** Install minimal xserver packages
+#+BEGIN_SRC sh
+  sudo apt-get install xserver-xorg-core
+  sudo apt-get install x11-xserver-utils
+  sudo apt-get install xinit
+#+END_SRC
+** Install graphics driver, In my case it's intel graphics
+#+BEGIN_SRC sh
+  sudo apt-get install xserver-xorg-video-intel
+#+END_SRC
+** Install input drivers. Mouse, keyboard and synaptics
+#+BEGIN_SRC sh
+  sudo apt-get install xserver-xorg-input-mouse
+  sudo apt-get install xserver-xorg-input-kbd
+  sudo apt-get install xserver-xorg-input-synaptics
+#+END_SRC
+** Install use-package, this will be used by emacs configuration
+#+BEGIN_SRC sh
+  sudo apt-get install elpa-use-package
+#+END_SRC
+* Clone dot files, and keep it in your home directory
+* Start X server 
+#+BEGIN_SRC sh
+  startx
+#+END_SRC
+* Now emacs will install required packages using use-package flag ensure
+* Wait and enjoy the minimal system
