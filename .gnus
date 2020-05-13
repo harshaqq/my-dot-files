@@ -1,10 +1,18 @@
 (require 'nnir)
-(setq gnus-select-method
-      '(nnimap "gmail"
-	       (nnimap-address "imap.gmail.com")  ; it could also be imap.googlemail.com if that's your server.
-	       (nnimap-server-port "imaps")
-	       (nnir-search-engine imap)
-	       (nnimap-stream ssl)))
+;; (setq gnus-select-method
+;;       '(nnimap "gmail"
+;; 	       (nnimap-address "imap.gmail.com")  ; it could also be imap.googlemail.com if that's your server.
+;; 	       (nnimap-server-port "imaps")
+;; 	       (nnir-search-engine imap)
+;; 	       (nnimap-stream ssl)))
+
+(setq-default gnus-select-method '(nntp "news.gwene.org"))
+;; (add-to-list 'gnus-secondary-select-methods '(nntp "news.gwene.org"))
+(add-to-list 'gnus-secondary-select-methods '(nnimap "gmail"
+						     (nnimap-address "imap.gmail.com")
+						     (nnimap-server-port "imaps")
+						     (nnir-search-engine imap)
+						     (nnimap-stream ssl)))
 
 (setq smtpmail-smtp-server "smtp.gmail.com"
       smtpmail-smtp-service 587)
@@ -15,7 +23,7 @@
 (add-hook 'message-mode-hook (lambda ()
 			       (flyspell-mode)))
 
-(require 'nnir)
+;; (require 'nnir)
 
 (setq epa-file-cache-passphrase-for-symmetric-encryption t)
 

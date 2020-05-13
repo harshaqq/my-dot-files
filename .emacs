@@ -9,16 +9,15 @@
   (set-default-coding-systems 'utf-8)
   (prefer-coding-system 'utf-8)
 
-  (scroll-bar-mode -1)
-  (menu-bar-mode -1)
-  (tool-bar-mode -1)
   (fringe-mode '(nil . 0))
+  (linum-mode 0)
+  (blink-cursor-mode 0)
 
   (setq backup-directory-alist `((".*" . ,temporary-file-directory)))
   (setq auto-save-file-name-transforms `((".*" ,temporary-file-directory)))
 
-  (setq resize-mini-windows nil)
-  (setq max-mini-window-height 1)
+  ;; (setq resize-mini-windows nil)
+  ;; (setq max-mini-window-height 1)
 
   (setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
   (setq mouse-wheel-progressive-speed nil)
@@ -32,8 +31,7 @@
   (when (display-graphic-p)
     (scroll-bar-mode 0)
     (menu-bar-mode -1)
-    (tool-bar-mode -1)
-    (set-frame-font "Hack-13" nil t))
+    (tool-bar-mode -1))
 
   (use-package files
     :config
@@ -44,7 +42,7 @@
 
   (use-package paren
     :custom
-    (show-paren-style 'mixed)
+    (show-paren-style 'parenthesis)
     :config
     (show-paren-mode 1))
 
@@ -52,7 +50,7 @@
     :custom
     (display-time-24hr-format t)
     (display-time-use-mail-icon t)
-    (display-time-day-and-date t)
+    (display-time-day-and-date nil)
     (display-time-world-list '(("Asia/Calcutta" "Bengaluru")
 			       ("America/New_York" "New York")
 			       ("America/Los_Angeles" "Seatle")))
@@ -211,7 +209,7 @@
 			("melpa" . "https://melpa.org/packages/")))
     :config
     (package-initialize))
-
+ 
   (use-package windmove
     :demand t
     :config
@@ -299,6 +297,8 @@
   (use-package exwm
     :demand t
     :ensure t
+    :init
+    (exwm-enable)
     :bind
     (("<XF86Calculator>" . calc)
      ("<XF86Launch5>" . delete-other-windows)
@@ -334,7 +334,7 @@
                        (exwm-workspace-switch-create ,i))))
 		 (number-sequence 0 9))))
     (exwm-workspace-number 3)
-    (exwm-workspace-minibuffer-position 'bottom)
+    ;; (exwm-workspace-minibuffer-position nil)
     (mouse-autoselect-window t)
     (focus-follows-mouse t)
     :config
@@ -364,7 +364,8 @@
 
   (use-package conf-mode
     :defer t
-    :mode "\\.*rc$")
+    :mode (("\\.*rc$" . conf-mode)
+	   ("\\Dockerfile\\'" . conf-mode)))
 
   (use-package typescript-mode
     :defer t
@@ -446,17 +447,20 @@
     (epa-file-select-keys nil))
 
   (use-package org-bullets
-    :defer t
+    :demand t
     :ensure t
     :custom
-    (org-bullets-bullet-list '("●" "◇" "✚" "✜" "☯" "◆" "♠")))
+    (org-bullets-bullet-list '("●" "◇" "✚" "✜" "☯" "◆" "♠"))
+    :hook (org-mode . org-bullets-mode))
+
+  (use-package org-crypt
+    :demand t)
 
   (use-package org
-    :defer t
-    :requires (epa org-bullets)
-    :bind (("C-c c" . org-capture)
-	   ("C-c a" . org-agenda))
+    :demand t
     :config
+    (global-set-key (kbd "C-c c") 'org-capture)
+    (global-set-key (kbd "C-c a") 'org-agenda)
     (org-babel-do-load-languages 'org-babel-load-languages
 				 '((js . t)
 				   (emacs-lisp . t)
@@ -507,22 +511,14 @@
 				    ("✔" ("WAIT") ("STOP"))
 				    ;; Moving to todo removes wait/stop
 				    ("❢" ("WAIT") ("STOP"))))
-
-    (org-todo-keyword-faces
-     '(("❢" :foreground "red" :weight bold)
-       ("☯" :foreground "tomato1" :weight bold)
-       ("✔" :foreground "forest green" :weight bold)
-       ("⧖" :foreground "orange" :weight bold)
-       ("✘" :foreground "forest green" :weight bold)))
-
+    
     (org-crypt-key epa-file-encrypt-to)
     (org-crypt-use-before-save-magic)
     (org-tags-exclude-from-inheritance '("crypt"))
     (org-agenda-include-diary t)
 
-    (org-capture-templates `(("t" "TODO" entry (file+headline ,
-						(expand-file-name "inbox.org" org-directory) "TASKS")
-			      "* ❢ %?\n %i\n")
+    (org-capture-templates `(
+			     ("t" "TODO" entry (file+headline , (expand-file-name "inbox.org" org-directory) "TASKS") "* ❢ %?\n %i\n")
 			     ("a" "ARTICLE" plain (file (lambda ()
 							  (let* ((title (read-string "Title: "))
 								 (slug (replace-regexp-in-string
@@ -530,22 +526,25 @@
 								 (dir (expand-file-name "articles" org-directory)))
 							    (unless (file-exists-p dir)
 							      (make-directory dir))
-							    (expand-file-name (concat slug ".org") dir))))
-			      "#+TITLE: %^{Title}\n#+DATE: %<%Y-%m-%d>")))
+							    (expand-file-name (concat slug ".org") dir)))) "#+TITLE: %^{Title}\n#+DATE: %<%Y-%m-%d>")
+			     ;; More is coming here
+			     ))
+    :init)
 
-    :hook (org-mode . (lambda ()
-			(push '("#+BEGIN_SRC" . ?✎) prettify-symbols-alist)
-			(push '("#+begin_src" . ?✎) prettify-symbols-alist)
-			(push '("#+END_SRC" . ?□) prettify-symbols-alist)
-			(push '("#+end_src" . ?□) prettify-symbols-alist)
-			(push '(">=" . ?≥) prettify-symbols-alist)
-			(push '("<=" . ?≤) prettify-symbols-alist)
-			(push '("[X]" . ?☑) prettify-symbols-alist)
-			(push '("[ ]" . ?❍) prettify-symbols-alist)
-			(prettify-symbols-mode)
-			(org-bullets-mode))))
-
-
+  (use-package prog-mode
+    :hook (
+	   (org-mode . prettify-symbols-mode)
+	   (org-mode . (lambda ()
+			 (push '("#+BEGIN_SRC" . ?✎) prettify-symbols-alist)
+			 (push '("#+begin_src" . ?✎) prettify-symbols-alist)
+			 (push '("#+END_SRC" . ?□) prettify-symbols-alist)
+			 (push '("#+end_src" . ?□) prettify-symbols-alist)
+			 (push '(">=" . ?≥) prettify-symbols-alist)
+			 (push '("<=" . ?≤) prettify-symbols-alist)
+			 (push '("[X]" . ?☑) prettify-symbols-alist)
+			 (push '("[ ]" . ?❍) prettify-symbols-alist)))
+	   (prog-mode . display-line-numbers-mode)))
+  
   (use-package emms
     :defer t
     :ensure t
@@ -574,14 +573,106 @@
     :bind (("M-n" . flymake-goto-next-error)
 	   ("M-p" . flymake-goto-prev-error)))
 
+  (use-package symon
+    :ensure t
+    :config
+    (symon-mode))
+
+  (use-package all-the-icons
+    :ensure t)
+
+  (use-package all-the-icons-dired
+    :ensure t)
+
   (use-package dired
     :defer t
+    :requires all-the-icons-dired
+    :config
+    (add-hook 'dired-mode-hook (lambda ()
+				 (all-the-icons-dired-mode)))
     :custom
-    (dired-listing-switches "-alGhvF --group-directories-first"))
+    (dired-listing-switches "-alGhvF --group-directories-first")) 
 
-  (add-hook 'after-init-hook (lambda ()
-			       (with-current-buffer "*scratch*"
-				 (insert "INITIATED IN: ")
-				 (insert (emacs-init-time)))
-			       (load-theme 'tsdh-dark)
-			       (switch-to-buffer "*scratch*"))))
+  (use-package doom-modeline
+    :ensure t
+    :custom
+    (doom-modeline-icon t)
+    :init
+    (doom-modeline-mode 1))
+  
+  (defun session-restore ()
+    "Restore a saved emacs session."
+    (interactive)
+    (if (saved-session)
+	(desktop-read)
+      (message "No desktop found.")))
+
+  ;; use session-save to save the desktop manually
+  (defun session-save ()
+    "Save an emacs session."
+    (interactive)
+    (if (saved-session)
+	(if (y-or-n-p "Overwrite existing desktop? ")
+	    (desktop-save-in-desktop-dir)
+	  (message "Session not saved."))
+      (desktop-save-in-desktop-dir)))  
+
+  (use-package desktop
+    :custom
+    (desktop-path (list user-emacs-directory))
+    (desktop-dirname user-emacs-directory)
+    (desktop-base-file-name "emacs-desktop")    
+    (desktop-buffers-not-to-save
+     (concat "\\("
+             "^nn\\.a[0-9]+\\|\\.log\\|(ftp)\\|^tags\\|^TAGS"
+             "\\|\\.emacs.*\\|\\.diary\\|\\.newsrc-dribble\\|\\.bbdb"
+	     "\\)$"))
+    :config
+    (add-hook 'desktop-after-read-hook
+	      '(lambda ()
+		 ;; desktop-remove clears desktop-dirname
+		 (setq desktop-dirname-tmp desktop-dirname)
+		 (desktop-remove)
+		 (setq desktop-dirname desktop-dirname-tmp)))    
+    (add-to-list 'desktop-globals-to-save 'register-alist)
+    (add-to-list 'desktop-modes-not-to-save 'dired-mode)
+    (add-to-list 'desktop-modes-not-to-save 'Info-mode)
+    (add-to-list 'desktop-modes-not-to-save 'info-lookup-mode)
+    (add-to-list 'desktop-modes-not-to-save 'fundamental-mode)    
+    (desktop-save-mode 1))
+
+  (use-package olivetti
+    :ensure t
+    :hook (org-mode . olivetti-mode))
+
+  (use-package poet-theme
+    :ensure t
+    :demand t
+    :hook (text-mode . variable-pitch-mode)
+    :config
+    (set-face-attribute 'default nil :family "Iosevka" :height 130)
+    (set-face-attribute 'fixed-pitch nil :family "Iosevka")
+    (set-face-attribute 'variable-pitch nil :family "Baskerville")
+    (load-theme 'poet t))
+  
+  (use-package dashboard
+    :requires all-the-icons
+    :ensure t    
+    :custom
+    (dashboard-banner-logo-title "Welcome to Debian/Emacs")
+    (dashboard-startup-banner 'logo)
+    (dashboard-center-content t)
+    (dashboard-show-shortcuts nil)
+    (dashboard-items '((recents . 5)
+  		       (bookmarks . 5)
+  		       (agenda . 5)
+  		       (registers . 5)))
+    (dashboard-set-heading-icons t)
+    (dashboard-set-file-icons t)
+    (dashboard-set-navigator t)
+    (dashboard-set-init-info t)
+    (dashboard-set-footer nil)
+    (show-week-agenda-p t)
+    (initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+    :config
+    (dashboard-setup-startup-hook)))
